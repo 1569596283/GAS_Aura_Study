@@ -23,7 +23,16 @@ public:
 	virtual void UnHighlightActor() override;
 	// 敌人接口
 
+	// 战斗接口
+	virtual int32 GetPlayerLevel() override;
+	 
+	// 战斗接口
+
 protected:
 	virtual void BeginPlay() override;
 	virtual void InitAbilityActorInfo() override;
+
+	UPROPERTY(EditAnywhere,BlueprintReadOnly,Category = "Character Class Defaults")
+	int32 Level = 1;
+
 };

@@ -18,6 +18,10 @@ public:
 	virtual void PossessedBy(AController* NewController) override;
 	virtual void OnRep_PlayerState() override;
 
+	// 战斗接口
+	virtual int32 GetPlayerLevel() override;
+	// 战斗接口
+
 private:
 	void InitAbilityActorInfo();
 };
