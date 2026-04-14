@@ -46,6 +46,12 @@ struct FEffectProperties {
 	ACharacter* TargetCharacter = nullptr;
 };
 
+// typedef 是专门针对FGameplayAttribute()的signature，TStaticFuncPtr是通用的，可以用于任意signature.
+//typedef TBaseStaticDelegateInstance<FGameplayAttribute(), FDefaultDelegateUserPolicy>::FFuncPtr FAttributeFuncPtr;
+template <class T>
+using TStaticFuncPtr = typename TBaseStaticDelegateInstance<T, FDefaultDelegateUserPolicy>::FFuncPtr;
+
+
 /**
  *
  */
@@ -60,6 +66,8 @@ public:
 
 	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
+
+	TMap<FGameplayTag, TStaticFuncPtr<FGameplayAttribute()>> TagsToAttributes;
 
 	/*
 	* 主要属性
@@ -97,8 +105,8 @@ public:
 	ATTRIBUTE_ACCESSORS(UAuraAttributeSet, BlockChance);
 
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_CritiaclHitChance, Category = "Secondary Attributes")
-	FGameplayAttributeData CritiaclHitChance;
-	ATTRIBUTE_ACCESSORS(UAuraAttributeSet, CritiaclHitChance);
+	FGameplayAttributeData CriticalHitChance;
+	ATTRIBUTE_ACCESSORS(UAuraAttributeSet, CriticalHitChance);
 
 	UPROPERTY(BlueprintReadOnly, ReplicatedUsing = OnRep_CriticalHitDamage, Category = "Secondary Attributes")
 	FGameplayAttributeData CriticalHitDamage;
