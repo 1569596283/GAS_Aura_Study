@@ -10,7 +10,7 @@
 UINTERFACE(MinimalAPI)
 class UEnemyInterface : public UInterface
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 };
 
 /**
@@ -18,11 +18,17 @@ class UEnemyInterface : public UInterface
  */
 class AURA_API IEnemyInterface
 {
-	GENERATED_BODY()
+    GENERATED_BODY()
 
-	// Add interface functions to this class. This is the class that will be inherited to implement this interface.
+    // Add interface functions to this class. This is the class that will be inherited to implement this interface.
 public:
 
-	virtual void HighlighActor() = 0;
-	virtual void UnHighlightActor() = 0;
+    virtual void HighlighActor() = 0;
+    virtual void UnHighlightActor() = 0;
+
+    UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+    void SetCombatTarget(AActor* InCombatTarget);
+
+    UFUNCTION(BlueprintCallable, BlueprintNativeEvent)
+    AActor* GetCombatTarget()const;
 };
