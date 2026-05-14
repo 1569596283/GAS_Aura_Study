@@ -81,6 +81,9 @@ FVector AAuraCharacterBase::GetCombatSocketLocation_Implementation(const  FGamep
     if (MontageTag.MatchesTagExact(GameplayTags.Combat_Socket_RightHand)) {
         return GetMesh()->GetSocketLocation(RightHandSocketName);
     }
+    if (MontageTag.MatchesTagExact(GameplayTags.Combat_Socket_Tail)) {
+        return GetMesh()->GetSocketLocation(TailSocketName);
+    }
 
     return FVector();
 }
