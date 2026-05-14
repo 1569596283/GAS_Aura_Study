@@ -108,7 +108,7 @@ UNiagaraSystem* AAuraCharacterBase::GetBloodEffect_Implementation()
     return BloodEffect;
 }
 
-FTaggedMontage AAuraCharacterBase::GetTageedMontageByTag(const FGameplayTag& MonatgeTag)
+FTaggedMontage AAuraCharacterBase::GetTageedMontageByTag_Implementation(const FGameplayTag& MonatgeTag)
 {
     for (FTaggedMontage TaggedMontage : AttackMontages) {
         if (TaggedMontage.MontageTag == MonatgeTag) {
@@ -116,6 +116,16 @@ FTaggedMontage AAuraCharacterBase::GetTageedMontageByTag(const FGameplayTag& Mon
         }
     }
     return FTaggedMontage();
+}
+
+int32 AAuraCharacterBase::GetMinionCount_Implementation()
+{
+    return MinionCount;
+}
+
+void AAuraCharacterBase::IncrementMinionCount_Implementation(int32 Amount)
+{
+    MinionCount += Amount;
 }
 
 void AAuraCharacterBase::InitAbilityActorInfo()
