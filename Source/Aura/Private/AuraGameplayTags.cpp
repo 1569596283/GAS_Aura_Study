@@ -88,6 +88,12 @@ void FAuraGameplayTags::InitializeNativeGameplayTags()
         FName("Attributes.Resistance.Physical"), FString("Resistance to Physical damage"));
 
     /*
+    * 元属性
+    */
+    GameplayTags.Attributes_Meta_IncomingXP = UGameplayTagsManager::Get().AddNativeGameplayTag(
+        FName("Attributes.Meta.IncomingXP"), FString("Incoming XP Meta Attribute"));
+
+    /*
     * 伤害类型到抗性的映射
     */
     GameplayTags.DamageTypesToResistances.Add(GameplayTags.Damage_Fire, GameplayTags.Attributes_Resistance_Fire);
@@ -116,7 +122,7 @@ void FAuraGameplayTags::InitializeNativeGameplayTags()
     */
     GameplayTags.Cooldown_Fire_FireBolt = UGameplayTagsManager::Get().AddNativeGameplayTag(
         FName("Cooldown.Fire.FireBolt"), FString("FireBolt Cooldown Tag"));
-    
+
     /*
     * 战斗插槽
     */

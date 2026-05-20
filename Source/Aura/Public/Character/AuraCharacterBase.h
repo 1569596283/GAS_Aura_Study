@@ -6,6 +6,7 @@
 #include "AbilitySystemInterface.h"
 #include "GameFramework/Character.h"
 #include "Interaction/CombatInterface.h"
+#include "AbilitySystem/Data/CharacterClassInfo.h"
 #include "AuraCharacterBase.generated.h"
 
 
@@ -38,6 +39,7 @@ public:
     virtual FTaggedMontage GetTageedMontageByTag_Implementation(const FGameplayTag& MonatgeTag) override;
     virtual int32 GetMinionCount_Implementation() override;
     virtual void IncrementMinionCount_Implementation(int32 Amount = 1) override;
+    virtual ECharacterClass GetCharacterClass_Implementation() override;
     /* end Combat Interface */
 
     UFUNCTION(NetMulticast, Reliable)
@@ -109,11 +111,17 @@ protected:
     /* Ëæ´Ó */
 
     int32 MinionCount = 0;
-    
+
+    UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character Class Defaults")
+    ECharacterClass CharacterClass = ECharacterClass::Warrior;
+
 private:
 
     UPROPERTY(EditAnywhere, Category = "Abilities")
     TArray<TSubclassOf<UGameplayAbility>> StartupAbilities;
+
+    UPROPERTY(EditAnywhere, Category = "Abilities")
+    TArray<TSubclassOf<UGameplayAbility>> StartupPassiveAbilities;
 
     UPROPERTY(EditAnywhere, Category = "Combat")
     TObjectPtr<UAnimMontage> HitReactMontage;
