@@ -8,7 +8,7 @@
 
 
 DECLARE_MULTICAST_DELEGATE_OneParam(FEffectAssetTags, const FGameplayTagContainer& /* ×Ê²ú±êÇ© */);
-DECLARE_MULTICAST_DELEGATE_OneParam(FAbilitiesGiven, UAuraAbilitySystemComponent*);
+DECLARE_MULTICAST_DELEGATE(FAbilitiesGiven);
 DECLARE_DELEGATE_OneParam(FForEachAbility, const FGameplayAbilitySpec&);
 
 /**
@@ -34,6 +34,7 @@ public:
 
     static FGameplayTag GetAbilityTagFromSpec(const FGameplayAbilitySpec& AbilitySpec);
     static FGameplayTag GetInputTagFromSpec(const FGameplayAbilitySpec& AbilitySpec);
+    static FGameplayTag GetStatusFromSpec(const FGameplayAbilitySpec& AbilitySpec);
 
     void UpgradeAttribute(const FGameplayTag& AttributeTag);
 
