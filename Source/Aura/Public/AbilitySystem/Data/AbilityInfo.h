@@ -26,6 +26,9 @@ struct FAuraAbilityInfo {
     FGameplayTag CooldownTag = FGameplayTag();
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+    FGameplayTag AbilityType = FGameplayTag();
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
     TObjectPtr<UTexture2D> Item = nullptr;
 
     UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
