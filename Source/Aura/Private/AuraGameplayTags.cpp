@@ -92,7 +92,7 @@ void FAuraGameplayTags::InitializeNativeGameplayTags()
         FName("Attributes.Resistance.Physical"), FString("Resistance to Physical damage"));
 
     /*
-    * 减益
+    * 负面效果
     */
     GameplayTags.Debuff_Burn = UGameplayTagsManager::Get().AddNativeGameplayTag(
         FName("Debuff.Burn"), FString("Debuff for Fire damage"));
@@ -127,7 +127,7 @@ void FAuraGameplayTags::InitializeNativeGameplayTags()
     GameplayTags.DamageTypesToResistances.Add(GameplayTags.Damage_Physical, GameplayTags.Attributes_Resistance_Physical);
 
     /*
-    * 伤害类型到减益的映射
+    * 伤害类型到负面效果的映射
     */
     GameplayTags.DamageTypesToDebuffs.Add(GameplayTags.Damage_Fire, GameplayTags.Debuff_Burn);
     GameplayTags.DamageTypesToDebuffs.Add(GameplayTags.Damage_Lightning, GameplayTags.Debuff_Stun);

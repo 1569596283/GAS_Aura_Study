@@ -15,6 +15,7 @@ class UAttributeSet;
 class UGameplayEffect;
 class UGameplayAbility;
 class UAnimMontage;
+class UDebuffNiagaraComponent;
 class NiagaraSystem;
 
 UCLASS(Abstract)
@@ -40,7 +41,12 @@ public:
     virtual int32 GetMinionCount_Implementation() override;
     virtual void IncrementMinionCount_Implementation(int32 Amount = 1) override;
     virtual ECharacterClass GetCharacterClass_Implementation() override;
+    virtual FOnASCRegistered& GetOnASCRegisteredDelegate() override;
+    virtual FOnDeath& GetOnDeathDelegate() override;
     /* end Combat Interface */
+
+    FOnASCRegistered OnAscRegistered;
+    FOnDeath OnDeath;
 
     UFUNCTION(NetMulticast, Reliable)
     virtual void MulticasHandleDeath();
@@ -114,6 +120,9 @@ protected:
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Character Class Defaults")
     ECharacterClass CharacterClass = ECharacterClass::Warrior;
+
+    UPROPERTY(VisibleAnywhere)
+    TObjectPtr<UDebuffNiagaraComponent> BurnDebuffComponent;
 
 private:
 
