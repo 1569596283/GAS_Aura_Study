@@ -7,13 +7,14 @@
 #include "AuraGameplayTags.h"
 #include "Components/SplineComponent.h"
 #include "NavigationPath.h"
+#include "GameFramework/Character.h"
+#include "UI/Widget/DamageTextComponent.h"
+#include "NiagaraFunctionLibrary.h"
 #include <EnhancedInputSubsystems.h>
 #include <Interaction/EnemyInterface.h>
 #include <Input/AuraInputComponent.h>
 #include <AbilitySystemBlueprintLibrary.h>
 #include <NavigationSystem.h>
-#include "GameFramework/Character.h"
-#include "UI/Widget/DamageTextComponent.h"
 
 AAuraPlayerController::AAuraPlayerController()
 {
@@ -101,6 +102,7 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
                     bAutoRunning = true;
                 }
             }
+            UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ClickNiagaraSystem, CachedDestination);
         }
         FllowTime = 0.f;
         bTargeting = false;
