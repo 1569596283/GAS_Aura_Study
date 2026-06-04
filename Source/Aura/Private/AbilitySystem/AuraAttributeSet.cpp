@@ -15,6 +15,7 @@
 #include <Interaction/CombatInterface.h>
 #include <AbilitySystem/AuraAbilitySystemLibrary.h>
 #include <AuraAbilityTypes.h>
+#include <GameplayEffectComponents/TargetTagsGameplayEffectComponent.h>
 
 UAuraAttributeSet::UAuraAttributeSet()
 {
@@ -142,12 +143,16 @@ void UAuraAttributeSet::HandleIncomingXP(const FEffectProperties& Props)
         const int32 NewLevel = IPlayerInterface::Execute_FindLevelForXP(Props.SourceCharacter, CurrentXP + LocalIncomingXP);
         const int32 NumLevelUps = NewLevel - CurrentLevel;
         if (NumLevelUps > 0) {
-            // TODO: 获得属性奖励和技能点奖励
-            // 回复所有生命值和魔力值
-            const int32 AttributePointsReward = IPlayerInterface::Execute_GetAttributePointsReward(Props.SourceCharacter, CurrentLevel);
-            const int32 SpellPointsReward = IPlayerInterface::Execute_GetSpellPointsReward(Props.SourceCharacter, CurrentLevel);
-
             IPlayerInterface::Execute_AddToPlayerLevel(Props.SourceCharacter, NumLevelUps);
+
+            int32 AttributePointsReward = 0;
+            int32 SpellPointsReward = 0;
+
+            for (int32 i = 0; i < NumLevelUps; ++i) {
+                AttributePointsReward += IPlayerInterface::Execute_GetAttributePointsReward(Props.SourceCharacter, CurrentLevel + i);
+                SpellPointsReward += IPlayerInterface::Execute_GetSpellPointsReward(Props.SourceCharacter, CurrentLevel + i);
+            }
+
             IPlayerInterface::Execute_AddToAttributePoints(Props.SourceCharacter, AttributePointsReward);
             IPlayerInterface::Execute_AddToSpellPoints(Props.SourceCharacter, SpellPointsReward);
 
@@ -180,15 +185,22 @@ void UAuraAttributeSet::Debuff(const FEffectProperties& Props)
     Effect->DurationMagnitude = FScalableFloat(DebuffDuration);
 
     const FGameplayTag DebuffTag = GameplayTags.DamageTypesToDebuffs[DamageType];
-    Effect->InheritableOwnedTagsContainer.AddTag(DebuffTag);
-    if (DebuffTag.MatchesTagExact(GameplayTags.Debuff_Stun)) {
-        Effect->InheritableOwnedTagsContainer.AddTag(GameplayTags.Player_Block_CursorTrace);
-        Effect->InheritableOwnedTagsContainer.AddTag(GameplayTags.Player_Block_InputHeld);
-        Effect->InheritableOwnedTagsContainer.AddTag(GameplayTags.Player_Block_InputPressed);
-        Effect->InheritableOwnedTagsContainer.AddTag(GameplayTags.Player_Block_InputReleased);
+    UTargetTagsGameplayEffectComponent& TagComponent = Effect->FindOrAddComponent<UTargetTagsGameplayEffectComponent>();
+    FInheritedTagContainer NewTargetTags;
+    NewTargetTags.AddTag(DebuffTag);
+    if (DebuffTag.MatchesTagExact(GameplayTags.Debuff_Stun))
+    {
+        NewTargetTags.AddTag(GameplayTags.Player_Block_CursorTrace);
+        NewTargetTags.AddTag(GameplayTags.Player_Block_InputHeld);
+        NewTargetTags.AddTag(GameplayTags.Player_Block_InputPressed);
+        NewTargetTags.AddTag(GameplayTags.Player_Block_InputReleased);
     }
+    TagComponent.SetAndApplyTargetTagChanges(NewTargetTags);
 
+#pragma warning(push)
+#pragma warning(disable: 4996)
     Effect->StackingType = EGameplayEffectStackingType::AggregateBySource;
+#pragma warning(pop)
     Effect->StackLimitCount = 1;
 
     const int32 Index = Effect->Modifiers.Num();

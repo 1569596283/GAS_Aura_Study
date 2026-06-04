@@ -223,9 +223,9 @@ void UAuraAbilitySystemComponent::ServerEquipAbility_Implementation(const FGamep
             ClearAbilitiesOfSlot(Slot);
             ClearSlot(AbilitySpec);
             AbilitySpec->GetDynamicSpecSourceTags().AddTag(Slot);
+            AbilitySpec->GetDynamicSpecSourceTags().AddTag(GameplayTags.Abilities_Status_Equipped);
             if (Status.MatchesTagExact(GameplayTags.Abilities_Status_Unlocked)) {
                 AbilitySpec->GetDynamicSpecSourceTags().RemoveTag(GameplayTags.Abilities_Status_Unlocked);
-                AbilitySpec->GetDynamicSpecSourceTags().RemoveTag(GameplayTags.Abilities_Status_Equipped);
             }
             MarkAbilitySpecDirty(*AbilitySpec);
         }
@@ -233,7 +233,7 @@ void UAuraAbilitySystemComponent::ServerEquipAbility_Implementation(const FGamep
     }
 }
 
-void UAuraAbilitySystemComponent::ClientEquipAbility(const FGameplayTag& AbilityTag, const FGameplayTag& Status, const FGameplayTag& Slot, const FGameplayTag& PreviousSlot)
+void UAuraAbilitySystemComponent::ClientEquipAbility_Implementation(const FGameplayTag& AbilityTag, const FGameplayTag& Status, const FGameplayTag& Slot, const FGameplayTag& PreviousSlot)
 {
     AbilityEquipped.Broadcast(AbilityTag, Status, Slot, PreviousSlot);
 }
