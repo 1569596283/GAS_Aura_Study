@@ -45,6 +45,8 @@ public:
     virtual FOnASCRegistered& GetOnASCRegisteredDelegate() override;
     virtual FOnDeath& GetOnDeathDelegate() override;
     virtual USkeletalMeshComponent* GetWeapon_Implementation() override;
+    virtual bool IsBeingShocked_Implementation() const override;
+    virtual void SetIsBeingShocked_Implementation(bool bInShock) override;
     /* end Combat Interface */
 
     FOnASCRegistered OnAscRegistered;
@@ -59,8 +61,17 @@ public:
     UPROPERTY(ReplicatedUsing = OnRep_Stunned, BlueprintReadOnly)
     bool bIsStunned = false;
 
+    UPROPERTY(ReplicatedUsing = OnRep_Burned, BlueprintReadOnly)
+    bool bIsBurned = false;
+
+    UPROPERTY(Replicated, BlueprintReadOnly)
+    bool bIsBeingShocked = false;
+
     UFUNCTION()
     virtual void OnRep_Stunned();
+
+    UFUNCTION()
+    virtual void OnRep_Burned();
 
 protected:
     // Called when the game starts or when spawned
@@ -137,6 +148,9 @@ protected:
 
     UPROPERTY(VisibleAnywhere)
     TObjectPtr<UDebuffNiagaraComponent> BurnDebuffComponent;
+
+    UPROPERTY(VisibleAnywhere)
+    TObjectPtr<UDebuffNiagaraComponent> StunDebuffComponent;
 
 private:
 
