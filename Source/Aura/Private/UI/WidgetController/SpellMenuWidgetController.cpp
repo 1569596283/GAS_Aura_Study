@@ -45,7 +45,7 @@ void USpellMenuWidgetController::BindCallbacksToDependencies()
         ShouldEnableButtons(SelectedAbility.Status, CurrentSpellPoints, bEnableSpendPoints, bEnableEquip);
         FString Description;
         FString NextLevelDescription;
-        GetAuraASC()->GetDescriptionByAbilityTag(SelectedAbility.Status, Description, NextLevelDescription);
+        GetAuraASC()->GetDescriptionByAbilityTag(SelectedAbility.Ability, Description, NextLevelDescription);
         SpellGlobeSelectedDelegate.Broadcast(bEnableSpendPoints, bEnableEquip, Description, NextLevelDescription);
         });
 }
@@ -113,7 +113,7 @@ void USpellMenuWidgetController::EquipButtonPressed()
 
     const FGameplayTag SelectedStatus = GetAuraASC()->GetStatusFromAbilityTag(SelectedAbility.Ability);
     if (SelectedStatus.MatchesTagExact(FAuraGameplayTags::Get().Abilities_Status_Equipped)) {
-        SelectedSlot = GetAuraASC()->GetInputTagFromAbilityTag(SelectedAbility.Ability);
+        SelectedSlot = GetAuraASC()->GetISlotFromAbilityTag(SelectedAbility.Ability);
     }
 }
 
