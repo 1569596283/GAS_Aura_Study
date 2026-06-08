@@ -9,7 +9,6 @@
 #include "AbilitySystem/Data/CharacterClassInfo.h"
 #include "AuraCharacterBase.generated.h"
 
-
 class UAbilitySystemComponent;
 class UAttributeSet;
 class UGameplayEffect;
@@ -27,8 +26,9 @@ class AURA_API AAuraCharacterBase : public ACharacter, public IAbilitySystemInte
 public:
     // Sets default values for this character's properties
     AAuraCharacterBase();
-    virtual void Tick(float DeltaTime)override;
+    virtual void Tick(float DeltaTime) override;
     virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps)const;
+    virtual float TakeDamage(float DamageAmount, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
     virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
     UAttributeSet* GetAttributeSet() const { return AttributeSet; }
 
@@ -49,10 +49,12 @@ public:
     virtual USkeletalMeshComponent* GetWeapon_Implementation() override;
     virtual bool IsBeingShocked_Implementation() const override;
     virtual void SetIsBeingShocked_Implementation(bool bInShock) override;
+    virtual FOnDamageSignature& GetOnDamageSignature() override;
     /* end Combat Interface */
 
     FOnASCRegistered OnAscRegistered;
     FOnDeath OnDeath;
+    FOnDamageSignature OnDamageDelegate;
 
     UFUNCTION(NetMulticast, Reliable)
     virtual void MulticasHandleDeath(const FVector& DeathImpulse);

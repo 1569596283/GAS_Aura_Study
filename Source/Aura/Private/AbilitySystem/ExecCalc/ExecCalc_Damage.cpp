@@ -7,6 +7,7 @@
 #include "AbilitySystem/AuraAttributeSet.h"
 #include "AbilitySystem/Data/CharacterClassInfo.h"
 #include "AuraGameplayTags.h"
+#include "Kismet/GameplayStatics.h"
 #include <AbilitySystem/AuraAbilitySystemLibrary.h>
 #include <Interaction/CombatInterface.h>
 #include <AuraAbilityTypes.h>
@@ -84,7 +85,7 @@ void UExecCalc_Damage::DetermineDebuff(const FGameplayEffectSpec& Spec, const FG
                 const float DebuffDamage = Spec.GetSetByCallerMagnitude(GameplayTags.Debuff_Damage, false, -1.f);
                 const float DebuffDuration = Spec.GetSetByCallerMagnitude(GameplayTags.Debuff_Duration, false, -1.f);
                 const float DebuffFrequency = Spec.GetSetByCallerMagnitude(GameplayTags.Debuff_Frequency, false, -1.f);
-                
+
                 UAuraAbilitySystemLibrary::SetDebuffDamage(ContextHandle, DebuffDamage);
                 UAuraAbilitySystemLibrary::SetDebuffDuration(ContextHandle, DebuffDuration);
                 UAuraAbilitySystemLibrary::SetDebuffFrequency(ContextHandle, DebuffFrequency);
@@ -97,6 +98,8 @@ void UExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecuti
 {
     TMap<FGameplayTag, FGameplayEffectAttributeCaptureDefinition> TagsToCaptureDefs;
     const FAuraGameplayTags& Tags = FAuraGameplayTags::Get();
+    const FGameplayEffectSpec& Spec = ExecutionParams.GetOwningSpec();
+    FGameplayEffectContextHandle EffectContextHandle = Spec.GetContext();
 
     TagsToCaptureDefs.Add(FAuraGameplayTags::Get().Attributes_Secondary_Armor, DamageStatics().ArmorDef);
     TagsToCaptureDefs.Add(FAuraGameplayTags::Get().Attributes_Secondary_BlockChance, DamageStatics().BlockChanceDef);
@@ -125,7 +128,6 @@ void UExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecuti
         TargetPlayerLevel = ICombatInterface::Execute_GetPlayerLevel(TargetAvatar);
     }
 
-    const FGameplayEffectSpec& Spec = ExecutionParams.GetOwningSpec();
 
     const FGameplayTagContainer* SourceTags = Spec.CapturedSourceTags.GetAggregatedTags();
     const FGameplayTagContainer* TargetTags = Spec.CapturedTargetTags.GetAggregatedTags();
@@ -153,6 +155,15 @@ void UExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecuti
 
         DamageTypeValue *= (100.f - Resistance) / 100.f;
 
+        if (UAuraAbilitySystemLibrary::IsRadialDamage(EffectContextHandle)) {
+            if (ICombatInterface* CombatInterface = Cast<ICombatInterface>(TargetAvatar)) {
+                CombatInterface->GetOnDamageSignature().AddLambda([&](float DamageAmount) {
+                    DamageTypeValue = DamageAmount;
+                    });
+            }
+        }
+        UGameplayStatics::ApplyRadialDamageWithFalloff(TargetAvatar, DamageTypeValue, 0.f, UAuraAbilitySystemLibrary::GetRadialDamageOrigin(EffectContextHandle), UAuraAbilitySystemLibrary::GetRadialDamageInnerRadius(EffectContextHandle), UAuraAbilitySystemLibrary::GetRadialDamageOuterRadius(EffectContextHandle), 1.f, UDamageType::StaticClass(), TArray<AActor*>(), SourceAvatar, nullptr);
+
         Damage += DamageTypeValue;
     }
 
@@ -165,7 +176,6 @@ void UExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecuti
 
     const bool bBlocked = FMath::RandRange(1, 100) < TargetBlockChance;
 
-    FGameplayEffectContextHandle EffectContextHandle = Spec.GetContext();
     UAuraAbilitySystemLibrary::SetIsBlockedHit(EffectContextHandle, bBlocked);
 
     Damage = bBlocked ? Damage / 2 : Damage;
