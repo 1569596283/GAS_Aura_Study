@@ -15,8 +15,6 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
-#include "Engine/PostProcessVolume.h"   
-#include "EngineUtils.h" 
 
 AAuraEnemy::AAuraEnemy()
 {
