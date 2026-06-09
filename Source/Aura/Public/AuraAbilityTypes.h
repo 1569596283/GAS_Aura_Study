@@ -107,7 +107,7 @@ public:
     void SetKnockbackForce(const FVector& InForce) { KnockbackForce = InForce; }
     void SetIsRadialDamage(bool bInIsRadialDamage) { bIsRadialDamage = bInIsRadialDamage; }
     void SetRadialDamageInnerRadius(float InRadialDamageInnerRadius) { RadialDamageInnerRadius = InRadialDamageInnerRadius; }
-    void SetRadialDamageOuterRadius(float InRadialDamageOuterRadius) { RadialDamageInnerRadius = InRadialDamageOuterRadius; }
+    void SetRadialDamageOuterRadius(float InRadialDamageOuterRadius) { RadialDamageOuterRadius = InRadialDamageOuterRadius; }
     void SetRadialDamageOrigin(FVector InRadialDamageOrigin) { RadialDamageOrigin = InRadialDamageOrigin; }
 
     /** Returns the actual struct used for serialization, subclasses must override this! */

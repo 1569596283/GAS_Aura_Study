@@ -15,6 +15,9 @@
 #include "BehaviorTree/BlackboardComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 
+#include "Engine/PostProcessVolume.h"   
+#include "EngineUtils.h" 
+
 AAuraEnemy::AAuraEnemy()
 {
     GetMesh()->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
@@ -61,7 +64,6 @@ void AAuraEnemy::UnHighlightActor()
 {
     GetMesh()->SetRenderCustomDepth(false);
     Weapon->SetRenderCustomDepth(false);
-
 }
 
 int32 AAuraEnemy::GetPlayerLevel_Implementation()

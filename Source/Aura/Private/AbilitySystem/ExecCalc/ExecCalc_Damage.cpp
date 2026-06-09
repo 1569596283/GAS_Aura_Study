@@ -149,6 +149,10 @@ void UExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecuti
 
         float DamageTypeValue = Spec.GetSetByCallerMagnitude(Pair.Key, false);
 
+        if (DamageTypeValue <= 0.f) {
+            continue;
+        }
+
         float Resistance = 0.f;
         ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(CaptureDef, EvaluationParameters, Resistance);
         Resistance = FMath::Clamp(Resistance, 0.f, 100.f);
@@ -157,8 +161,9 @@ void UExecCalc_Damage::Execute_Implementation(const FGameplayEffectCustomExecuti
 
         if (UAuraAbilitySystemLibrary::IsRadialDamage(EffectContextHandle)) {
             if (ICombatInterface* CombatInterface = Cast<ICombatInterface>(TargetAvatar)) {
-                CombatInterface->GetOnDamageSignature().AddLambda([&](float DamageAmount) {
+                FDelegateHandle Handle = CombatInterface->GetOnDamageSignature().AddLambda([&](float DamageAmount) {
                     DamageTypeValue = DamageAmount;
+                    CombatInterface->GetOnDamageSignature().Remove(Handle);
                     });
             }
         }
