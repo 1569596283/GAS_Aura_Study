@@ -119,6 +119,41 @@ int32 UAuraAbilitySystemLibrary::GetXPRewardForClassAndLevel(const UObject* Worl
     return static_cast<int32>(XPReward);
 }
 
+void UAuraAbilitySystemLibrary::SetIsRadialDamageEffectParams(UPARAM(ref)FDamageEffectParams& DamageEffectParams, bool bIsRadial, float InnerRadius, float OuterRadius, FVector Origin)
+{
+    DamageEffectParams.bIsRadialDamage = bIsRadial;
+    DamageEffectParams.RadialDamageInnerRadius = InnerRadius;
+    DamageEffectParams.RadialDamageOuterRadius = OuterRadius;
+    DamageEffectParams.RadialDamageOrigin = Origin;
+}
+
+void UAuraAbilitySystemLibrary::SetKnockbackDirection(UPARAM(ref)FDamageEffectParams& DamageEffectParams, FVector KnockbackDirection, float Magintude)
+{
+    KnockbackDirection.Normalize();
+    if (Magintude == 0.f) {
+        DamageEffectParams.KnockbackForce = KnockbackDirection * DamageEffectParams.KnockbackFroceMagnitude;
+    }
+    else {
+        DamageEffectParams.KnockbackForce = KnockbackDirection * Magintude;
+    }
+}
+
+void UAuraAbilitySystemLibrary::SetDeathImpulseDirection(UPARAM(ref)FDamageEffectParams& DamageEffectParams, FVector ImpulseDirection, float Magintude)
+{
+    ImpulseDirection.Normalize();
+    if (Magintude == 0.f) {
+        DamageEffectParams.DeathImpulse = ImpulseDirection * DamageEffectParams.DeathImpulseMagnitude;
+    }
+    else {
+        DamageEffectParams.DeathImpulse = ImpulseDirection * Magintude;
+    }
+}
+
+void UAuraAbilitySystemLibrary::SetTargetEffectParamsASC(UPARAM(ref)FDamageEffectParams& DamageEffectParams, UAbilitySystemComponent* InASC)
+{
+    DamageEffectParams.TargetAbilitySystemComponent = InASC;
+}
+
 UCharacterClassInfo* UAuraAbilitySystemLibrary::GetCharacterClassInfo(const UObject* WorldContextObject)
 {
     const AAuraGameModeBase* AuraGameMode = Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(WorldContextObject));
@@ -425,7 +460,7 @@ TArray<FRotator> UAuraAbilitySystemLibrary::EvenlySpacedRotators(const FVector& 
     const FVector LeftOfSpread = Forward.RotateAngleAxis(-Spread / 2.f, FVector::UpVector);
 
     if (NumRotators > 1) {
-        const float DeltaSpread = Spread / (NumRotators - 1);
+        const float DeltaSpread = Spread / (fmod(Spread, 360.f) == 0 ? NumRotators : (NumRotators - 1));
         for (int32 i = 0; i < NumRotators; i++) {
             const FVector Direction = LeftOfSpread.RotateAngleAxis(DeltaSpread * i, FVector::UpVector);
             Rotators.Add(Direction.Rotation());
