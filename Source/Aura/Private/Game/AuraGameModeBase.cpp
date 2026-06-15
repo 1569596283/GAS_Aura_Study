@@ -5,6 +5,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "UI/ViewModel/MVVM_LoadSlot.h"
 #include "Game/LoadScreenSaveGame.h"
+#include "GameFramework/PlayerStart.h"
+#include "Game/AuraGameInstance.h"
 
 void AAuraGameModeBase::SaveSlotData(UMVVM_LoadSlot* LoadSlot, int32 SlotIndex)
 {
@@ -16,6 +18,7 @@ void AAuraGameModeBase::SaveSlotData(UMVVM_LoadSlot* LoadSlot, int32 SlotIndex)
     LoadScreenSaveGame->PlayerName = LoadSlot->GetPlayerName();
     LoadScreenSaveGame->MapName = LoadSlot->GetMapName();
     LoadScreenSaveGame->SaveSlotStatus = Taken;
+    LoadScreenSaveGame->PlayerStartTag = LoadSlot->PlayerStartTag;
 
     UGameplayStatics::SaveGameToSlot(LoadScreenSaveGame, LoadSlot->LoadSlotName, SlotIndex);
 
@@ -41,12 +44,54 @@ void AAuraGameModeBase::DeleteSlot(const FString& SlotName, int32 SlotIndex)
     }
 }
 
+ULoadScreenSaveGame* AAuraGameModeBase::RetrieveInGameSaveData()
+{
+    UAuraGameInstance* AuraGameInstance = Cast<UAuraGameInstance>(GetGameInstance());
+
+    const FString InGameLoadSlotName = AuraGameInstance->LoadSlotName;
+    const int32 InGameLoadSlotIndex = AuraGameInstance->LoadSlotIndex;
+
+    return GetSaveSlotData(InGameLoadSlotName, InGameLoadSlotIndex);
+}
+
+void AAuraGameModeBase::SaveInGameProgressData(ULoadScreenSaveGame* SaveObject)
+{
+    UAuraGameInstance* AuraGameInstance = Cast<UAuraGameInstance>(GetGameInstance());
+
+    const FString InGameLoadSlotName = AuraGameInstance->LoadSlotName;
+    const int32 InGameLoadSlotIndex = AuraGameInstance->LoadSlotIndex;
+    AuraGameInstance->PlayerStartTag = SaveObject->PlayerStartTag;
+
+    UGameplayStatics::SaveGameToSlot(SaveObject, InGameLoadSlotName, InGameLoadSlotIndex);
+}
+
 void AAuraGameModeBase::TraveToMap(UMVVM_LoadSlot* Slot)
 {
     const  FString SlotName = Slot->LoadSlotName;
     const int32 SlotIndex = Slot->SlotIndex;
 
     UGameplayStatics::OpenLevelBySoftObjectPtr(Slot, Maps.FindChecked(Slot->GetMapName()));
+}
+
+AActor* AAuraGameModeBase::ChoosePlayerStart_Implementation(AController* Player)
+{
+    UAuraGameInstance* AuraGameInstance = Cast<UAuraGameInstance>(GetGameInstance());
+
+    TArray<AActor*> Actors;
+    UGameplayStatics::GetAllActorsOfClass(GetWorld(), APlayerStart::StaticClass(), Actors);
+    if (Actors.Num() > 0) {
+        AActor* SelectedActor = Actors[0];
+        for (AActor* Actor : Actors) {
+            if (APlayerStart* PlayerStart = Cast <APlayerStart>(Actor)) {
+                if (PlayerStart->PlayerStartTag == AuraGameInstance->PlayerStartTag) {
+                    SelectedActor = PlayerStart;
+                    break;
+                }
+            }
+        }
+        return SelectedActor;
+    }
+    return nullptr;
 }
 
 void AAuraGameModeBase::BeginPlay()

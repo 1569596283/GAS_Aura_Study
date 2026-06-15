@@ -11,6 +11,11 @@
 #include "Camera/CameraComponent.h"
 #include "AuraGameplayTags.h"
 #include "AbilitySystem/Debuff/DebuffNiagaraComponent.h"
+#include "Game/AuraGameModeBase.h"
+#include "Kismet/GameplayStatics.h"
+#include "Game/AuraGameInstance.h"
+#include "Game/LoadScreenSaveGame.h"
+#include "AbilitySystem/AuraAttributeSet.h"
 #include <Player/AuraPlayerState.h>
 #include <Player/AuraPlayerController.h>
 #include <UI/HUD/AuraHUD.h>
@@ -153,6 +158,31 @@ void AAuraCharacter::HideMagicCircle_Implementation()
     if (AAuraPlayerController* AuraPlayerController = Cast<AAuraPlayerController>(GetController())) {
         AuraPlayerController->HideMagicCircle();
         AuraPlayerController->bShowMouseCursor = true;
+    }
+}
+
+void AAuraCharacter::SaveProgress_Implementation(const FName& CheckpointTag)
+{
+    AAuraGameModeBase* AuraGameMode = Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(this));
+    if (AuraGameMode) {
+        ULoadScreenSaveGame* SaveData = AuraGameMode->RetrieveInGameSaveData();
+        if (SaveData == nullptr)
+            return;
+
+        SaveData->PlayerStartTag = CheckpointTag;
+
+        if (AAuraPlayerState* AuraPlayerState = Cast<AAuraPlayerState>(GetPlayerState())) {
+            SaveData->PlayerLevel = AuraPlayerState->GetPlayerLevel();
+            SaveData->XP = AuraPlayerState->GetXP();
+            SaveData->AttributePoints = AuraPlayerState->GetAttributePoints();
+            SaveData->SpellPoints = AuraPlayerState->GetSpellPoints();
+        }
+        SaveData->Strength = UAuraAttributeSet::GetStrengthAttribute().GetNumericValue(GetAttributeSet());
+        SaveData->Intelligence = UAuraAttributeSet::GetIntelligenceAttribute().GetNumericValue(GetAttributeSet());
+        SaveData->Resilience =  UAuraAttributeSet::GetResilienceAttribute().GetNumericValue(GetAttributeSet());
+        SaveData->Vigor = UAuraAttributeSet::GetVigorAttribute().GetNumericValue(GetAttributeSet());
+
+        AuraGameMode->SaveInGameProgressData(SaveData);
     }
 }
 
