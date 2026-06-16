@@ -7,6 +7,8 @@
 #include "GameplayTagContainer.h"
 #include "PassiveNiagaraComponent.generated.h"
 
+class UAuraAbilitySystemComponent;
+
 /**
  *
  */
@@ -28,4 +30,5 @@ protected:
 
     void OnPassiveActivate(const FGameplayTag& AbilityTag, bool bActivate);
 
+    void ActivateIfEquipped(UAuraAbilitySystemComponent* AuraASC);
 };

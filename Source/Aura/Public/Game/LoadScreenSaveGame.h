@@ -4,8 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/SaveGame.h"
+#include "GameplayTagContainer.h"
 #include "LoadScreenSaveGame.generated.h"
 
+class UGameplayAbility;
 
 UENUM(BlueprintType)
 enum ESaveSlotStatus {
@@ -13,6 +15,67 @@ enum ESaveSlotStatus {
     EnterName,
     Taken
 };
+
+USTRUCT()
+struct FSavedActor {
+    GENERATED_BODY()
+
+    UPROPERTY()
+    FName ActorName = FName();
+
+    UPROPERTY()
+    FTransform Transform = FTransform();
+
+    // 序列化变量
+    UPROPERTY()
+    TArray<uint8> Bytes;
+};
+
+inline bool operator ==(const FSavedActor& Left, const FSavedActor& Right) {
+    return Left.ActorName == Right.ActorName;
+}
+
+USTRUCT()
+struct FSavedMap {
+    GENERATED_BODY()
+
+    UPROPERTY()
+    FString MapAssetName = FString();
+
+    UPROPERTY()
+    TArray<FSavedActor> SavedActors;
+};
+
+USTRUCT(BlueprintType)
+struct FSavedAbility
+{
+    GENERATED_BODY()
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "ClassDefaults")
+    TSubclassOf<UGameplayAbility> GameplayAbility;
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+    FGameplayTag Ability = FGameplayTag();
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+    FGameplayTag AbilityTag = FGameplayTag();
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+    FGameplayTag AbilityStatus = FGameplayTag();
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+    FGameplayTag AbilitySlot = FGameplayTag();
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+    FGameplayTag AbilityType = FGameplayTag();
+
+    UPROPERTY(EditDefaultsOnly, BlueprintReadOnly)
+    int32 AbilityLevel;
+};
+
+inline bool operator==(const FSavedAbility& Left, const FSavedAbility& Right) {
+    return Left.AbilityTag.MatchesTagExact(Right.AbilityTag);
+}
 
 /**
  *
@@ -42,10 +105,13 @@ public:
     UPROPERTY()
     TEnumAsByte<ESaveSlotStatus> SaveSlotStatus = Vacant;
 
+    UPROPERTY()
+    bool bFirstTimeLoadIn = true;
+
     /* Player */
 
     UPROPERTY()
-    int32 PlayerLevel = 0;
+    int32 PlayerLevel = 1;
 
     UPROPERTY()
     int32 XP = 0;
@@ -69,4 +135,15 @@ public:
 
     UPROPERTY()
     float Vigor = 0.f;
+
+    /* 能力 */
+
+    UPROPERTY()
+    TArray<FSavedAbility> SavedAbilities;
+
+    UPROPERTY()
+    TArray <FSavedMap> SavedMaps;
+
+    FSavedMap GetSavedMapWithMapName(const FString& InMapName);
+    bool HasMap(const FString& InMapName);
 };

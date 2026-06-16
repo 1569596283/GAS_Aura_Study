@@ -11,6 +11,7 @@ class UAbilityInfo;
 class UMVVM_LoadSlot;
 class USaveGame;
 class ULoadScreenSaveGame;
+class UWorld;
 
 /**
  *
@@ -32,6 +33,9 @@ public:
     static void DeleteSlot(const FString& SlotName, int32 SlotIndex);
     ULoadScreenSaveGame* RetrieveInGameSaveData();
     void SaveInGameProgressData(ULoadScreenSaveGame* SaveObject);
+
+    void SaveWorldState(UWorld* World) const;
+    void LoadWorldState(UWorld* World) const;
 
     void TraveToMap(UMVVM_LoadSlot* Slot);
 
