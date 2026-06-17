@@ -5,6 +5,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerStart.h"
 #include "Interaction/SaveInterface.h"
+#include "Interaction/HighlightInterface.h"
+#include "Aura/Aura.h"
 #include "Checkpoint.generated.h"
 
 
@@ -14,7 +16,7 @@ class USphereComponent;
  *
  */
 UCLASS()
-class AURA_API ACheckpoint : public APlayerStart, public ISaveInterface
+class AURA_API ACheckpoint : public APlayerStart, public ISaveInterface, public IHighlightInterface
 {
     GENERATED_BODY()
 
@@ -27,8 +29,11 @@ public:
     virtual void LoadActor_Implementation() override;
     /* End SaveInterface */
 
-    UPROPERTY(BlueprintReadOnly, SaveGame)
+    UPROPERTY(BlueprintReadWrite, SaveGame)
     bool bReached = false;
+
+    UPROPERTY(EditAnywhere)
+    bool bBindOverlapCallback = true;
 protected:
 
     UFUNCTION()
@@ -36,14 +41,25 @@ protected:
 
     virtual void BeginPlay() override;
 
+    /* Highlight Interface */
+    virtual void HighlightActor_Implementation() override;
+    virtual void UnHighlightActor_Implementation() override;
+    virtual void SetMoveToLocation_Implementation(FVector& OutDestination) override;
+    /* Highlight Interface */
+
+    UPROPERTY(VisibleAnywhere)
+    TObjectPtr<USceneComponent> MoveToComponent;
+
+    UPROPERTY(EditDefaultsOnly)
+    int32 CustomDepthStencilOverride = CUSTOM_DEPTH_TAN;
+
     UFUNCTION(BlueprintImplementableEvent)
     void CheckpointReached(UMaterialInstanceDynamic* DynamicMaterialInstance);
 
+    UFUNCTION(BlueprintCallable)
     void HandleGlowEffects();
 
-private:
-
-    UPROPERTY(VisibleAnywhere)
+    UPROPERTY(BlueprintReadOnly, VisibleAnywhere)
     TObjectPtr<UStaticMeshComponent> CheckpointMesh;
 
     UPROPERTY(VisibleAnywhere)

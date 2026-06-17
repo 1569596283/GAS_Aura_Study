@@ -10,7 +10,6 @@
 class UDamageTextComponent;
 class UInputMappingContext;
 class UInputAction;
-class IEnemyInterface;
 class UAuraInputConfig;
 class UAuraAbilitySystemComponent;
 class USplineComponent;
@@ -18,6 +17,12 @@ class UNiagaraSystem;
 class AMagicCircle;
 
 struct FInputActionValue;
+
+enum class ETargetingStatus : uint8 {
+    TargetingEnemy,
+    TargetingNoEnemy,
+    NotTargeting
+};
 
 /**
  *
@@ -60,9 +65,11 @@ private:
     void Move(const  FInputActionValue& InputActionValue);
 
     void CursorTrace();
-    IEnemyInterface* LastActor;
-    IEnemyInterface* ThisActor;
+    TObjectPtr<AActor> LastActor;
+    TObjectPtr<AActor> ThisActor;
     FHitResult CursorHit;
+    void HighlightActor(AActor* InActor);
+    void UnHighlightActor(AActor* InActor);
 
     void AbilityInputTagPressed(FGameplayTag InputTag);
     void AbilityInputTagReleased(FGameplayTag InputTag);
@@ -80,7 +87,7 @@ private:
     float FllowTime = 0.f;
     float ShortPressThreshold = 0.5f;
     bool bAutoRunning = false;
-    bool bTargeting = false;
+    ETargetingStatus TargetingStatus = ETargetingStatus::NotTargeting;
 
     UPROPERTY(EditDefaultsOnly)
     float AutoRunAcceptanceRadius = 50.f;

@@ -13,8 +13,9 @@
 #include "Actor/MagicCircle.h"
 #include "Components/DecalComponent.h"
 #include "Aura/Aura.h"
+#include "Interaction/HighlightInterface.h"
+#include "Interaction/EnemyInterface.h"
 #include <EnhancedInputSubsystems.h>
-#include <Interaction/EnemyInterface.h>
 #include <Input/AuraInputComponent.h>
 #include <AbilitySystemBlueprintLibrary.h>
 #include <NavigationSystem.h>
@@ -71,8 +72,8 @@ void AAuraPlayerController::UpdateMagicCircleLocation()
 
 void AAuraPlayerController::CursorTrace() {
     if (GetASC() && GetASC()->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Block_CursorTrace)) {
-        if (LastActor) LastActor->UnHighlightActor();
-        if (ThisActor) ThisActor->UnHighlightActor();
+        UnHighlightActor(LastActor);
+        UnHighlightActor(ThisActor);
         LastActor = nullptr;
         ThisActor = nullptr;
         return;
@@ -82,12 +83,29 @@ void AAuraPlayerController::CursorTrace() {
     if (!CursorHit.bBlockingHit)return;
 
     LastActor = ThisActor;
-    ThisActor = Cast<IEnemyInterface>(CursorHit.GetActor());
+    if (IsValid(CursorHit.GetActor()) && CursorHit.GetActor()->Implements<UHighlightInterface>()) {
+        ThisActor = CursorHit.GetActor();
+    }
+    else {
+        ThisActor = nullptr;
+    }
 
     if (LastActor != ThisActor) {
-        if (LastActor) LastActor->UnHighlightActor();
-        if (ThisActor) ThisActor->HighlighActor();
+        UnHighlightActor(LastActor);
+        HighlightActor(ThisActor);
     }
+}
+
+void AAuraPlayerController::HighlightActor(AActor* InActor)
+{
+    if (IsValid(InActor) && InActor->Implements<UHighlightInterface>())
+        IHighlightInterface::Execute_HighlightActor(InActor);
+}
+
+void AAuraPlayerController::UnHighlightActor(AActor* InActor)
+{
+    if (IsValid(InActor) && InActor->Implements<UHighlightInterface>())
+        IHighlightInterface::Execute_UnHighlightActor(InActor);
 }
 
 void AAuraPlayerController::AbilityInputTagPressed(FGameplayTag InputTag)
@@ -96,8 +114,13 @@ void AAuraPlayerController::AbilityInputTagPressed(FGameplayTag InputTag)
         return;
 
     if (InputTag.MatchesTagExact(FAuraGameplayTags::Get().InputTag_LMB)) {
-        bTargeting = ThisActor ? true : false;
         bAutoRunning = false;
+        if (IsValid(ThisActor)) {
+            TargetingStatus = ThisActor->Implements<UEnemyInterface>() ? ETargetingStatus::TargetingEnemy : ETargetingStatus::TargetingNoEnemy;
+        }
+        else {
+            TargetingStatus = ETargetingStatus::NotTargeting;
+        }
     }
     if (GetASC()) {
         GetASC()->AbilityInputTagPressed(InputTag);
@@ -117,9 +140,15 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
     }
     GetASC()->AbilityInputTagReleased(InputTag);
 
-    if (!bTargeting && !bShiftKeyDown) {
+    if (TargetingStatus != ETargetingStatus::TargetingEnemy && !bShiftKeyDown) {
         const APawn* ControlledPawn = GetPawn();
         if (FllowTime <= ShortPressThreshold && ControlledPawn) {
+            if (IsValid(ThisActor) && ThisActor->Implements<UHighlightInterface>()) {
+                IHighlightInterface::Execute_SetMoveToLocation(ThisActor, CachedDestination);
+            }
+            else if (GetASC() && !GetASC()->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Block_InputPressed)) {
+                UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ClickNiagaraSystem, CachedDestination);
+            }
             if (UNavigationPath* NavPath = UNavigationSystemV1::FindPathToLocationSynchronously(this, ControlledPawn->GetActorLocation(), CachedDestination)) {
                 Spline->ClearSplinePoints();
                 for (const FVector& PointLoc : NavPath->PathPoints) {
@@ -130,11 +159,10 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
                     bAutoRunning = true;
                 }
             }
-            if (GetASC() && !GetASC()->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Block_InputPressed))
-                UNiagaraFunctionLibrary::SpawnSystemAtLocation(this, ClickNiagaraSystem, CachedDestination);
+
         }
         FllowTime = 0.f;
-        bTargeting = false;
+        TargetingStatus = ETargetingStatus::NotTargeting;
     }
 }
 
@@ -150,7 +178,7 @@ void AAuraPlayerController::AbilityInputTagHeld(FGameplayTag InputTag)
         return;
     }
 
-    if (bTargeting || bShiftKeyDown) {
+    if (TargetingStatus == ETargetingStatus::TargetingEnemy || bShiftKeyDown) {
         if (GetASC()) {
             GetASC()->AbilityInputTagHeld(InputTag);
         }
@@ -226,7 +254,7 @@ void AAuraPlayerController::SetupInputComponent()
     AuraInputComponent->BindAction(ShiftAction, ETriggerEvent::Completed, this, &AAuraPlayerController::ShiftReleased);
     AuraInputComponent->BindAbilityActions(InputConfig, this, &ThisClass::AbilityInputTagPressed, &ThisClass::AbilityInputTagReleased, &ThisClass::AbilityInputTagHeld);
 }
-
+/*
 void AAuraPlayerController::Move(const FInputActionValue& InputActionValue)
 {
     if (GetASC() && GetASC()->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Block_InputPressed))
@@ -240,7 +268,37 @@ void AAuraPlayerController::Move(const FInputActionValue& InputActionValue)
     const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 
     if (APawn* ControlledPawn = GetPawn<APawn>()) {
-        ControlledPawn->AddMovementInput(ForwardDirection, InputAxisVector.Y);
-        ControlledPawn->AddMovementInput(RightDirection, InputAxisVector.X);
+        ControlledPawn->AddMovementInput(ForwardDirection, InputAxisVector.Y, true);
+        ControlledPawn->AddMovementInput(RightDirection, InputAxisVector.X, true);
     }
+}
+*/
+
+void AAuraPlayerController::Move(const FInputActionValue& InputActionValue)
+{
+    if (GetASC() && GetASC()->HasMatchingGameplayTag(FAuraGameplayTags::Get().Player_Block_InputPressed))
+        return;
+
+    const FVector2D InputAxisVector = InputActionValue.Get<FVector2D>();
+
+    APawn* ControlledPawn = GetPawn<APawn>();
+    if (!ControlledPawn) return;
+
+    // 改用摄像机实际的世界旋转，这样移动方向就和你看到的画面完全一致
+    FRotator CameraRotation;
+    if (PlayerCameraManager)
+    {
+        CameraRotation = PlayerCameraManager->GetCameraRotation();
+    }
+    else
+    {
+        CameraRotation = GetControlRotation();   // 极少情况下作为后备
+    }
+
+    const FRotator YawRotation(0.f, CameraRotation.Yaw, 0.f);
+    const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+    const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+
+    ControlledPawn->AddMovementInput(ForwardDirection, InputAxisVector.Y);
+    ControlledPawn->AddMovementInput(RightDirection, InputAxisVector.X);
 }
